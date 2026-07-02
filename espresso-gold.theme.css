@@ -1,0 +1,719 @@
+/**
+ * @name Espresso Gold
+ * @author you
+ * @version 2.0
+ * @description Warm espresso dark theme, one restrained gold accent. Token-driven (survives Discord updates), glassmorphism, animated accents, fully configurable feature toggles. Self-contained — no remote @imports except the Poppins webfont.
+ * @source local
+ *
+ * ─────────────────────────────────────────────────────────────
+ *  HOW THIS THEME IS BUILT (read if you want to customize)
+ * ─────────────────────────────────────────────────────────────
+ *  Discord ships two eras of CSS design tokens:
+ *    • legacy  : --background-primary, --brand-500, --text-normal ...
+ *    • refresh : --bg-base-primary, --bg-surface-*, --text-default ...
+ *  Hashed class names (.container__abc12) change almost every client
+ *  update; the tokens above are stable. So the ENGINE below repaints
+ *  Discord by overriding tokens — that is what makes this fast + durable.
+ *  Class-name rules are only used for the few things tokens can't reach
+ *  (guild pill shape, home button art, code blocks, badges).
+ *
+ *  To recolor the whole client: edit the --eg-* palette. Done.
+ *  To toggle features: flip the knobs in the FEATURES block.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
+
+/*##########################################################################
+  PALETTE — Espresso Gold. Change these, everything follows.
+##########################################################################*/
+:root {
+  /* Canvas: warm espresso */
+  --eg-bg:        #14110e;
+  --eg-bg-2:      #18140f;
+  --eg-bg-3:      #1d1812;
+  --eg-bg-deep:   #100d0a;   /* deepest layer (server rail) */
+  --eg-surface:   #211b14;
+  --eg-surface-2: #2a2218;
+  --eg-surface-3: #342a1d;
+  --eg-surface-4: #3f3324;
+
+  /* Ink: cream */
+  --eg-ink:       #f4eee2;
+  --eg-ink-2:     #e6ddcc;
+  --eg-ink-soft:  #b9ad97;
+  --eg-ink-mid:   #948975;
+  --eg-ink-faint: #756b59;
+  --eg-ink-ghost: #3a3225;
+
+  /* Accent: gold (ONE accent) */
+  --eg-gold:      #c8a96a;
+  --eg-gold-2:    #e3c789;
+  --eg-gold-soft: #d8bd83;
+  --eg-gold-deep: #a8853f;
+  --eg-gold-ink:  #1a140c;
+
+  /* Semantic status (kept native-ish, warmed) */
+  --eg-online:    #93b07a;
+  --eg-idle:      #d8bd83;
+  --eg-dnd:       #c96f5a;
+  --eg-red:       #c96f5a;
+
+  /* Gold lines / washes (cream + gold at low opacity) */
+  --eg-line-1:    rgba(244,238,226,.06);
+  --eg-line-2:    rgba(244,238,226,.10);
+  --eg-line-3:    rgba(244,238,226,.16);
+  --eg-gold-line: rgba(200,169,106,.34);
+  --eg-gold-wash: rgba(200,169,106,.09);
+  --eg-gold-glow: rgba(200,169,106,.45);
+
+  /* Signature gradients */
+  --eg-grad-gold:  linear-gradient(102deg,#f0dcae,#d8bd83 38%,#c8a96a 64%,#a8853f 100%);
+  --eg-grad-text:  linear-gradient(100deg,#f3dcab,#d4b878 46%,#b8954f);
+  --eg-grad-sheen: linear-gradient(115deg,transparent 0%,rgba(244,238,226,.10) 45%,rgba(200,169,106,.22) 50%,rgba(244,238,226,.10) 55%,transparent 100%);
+
+  /*======================================================================
+    FEATURES — flip 1/0 (or edit values). Read the comment on each.
+  ======================================================================*/
+  --eg-font:            'Poppins';   /* app font */
+  --eg-radius:          10px;        /* global corner rounding */
+  --eg-radius-sm:       7px;
+  --eg-avatar-radius:   50%;         /* 50% = circle, 30% = squircle, 22% = soft square */
+  --eg-speed:           .18s;        /* base transition speed */
+
+  --eg-glass-blur:      18px;        /* popout/modal frosted-glass blur */
+  --eg-panel-alpha:     .72;         /* surface translucency over the wallpaper */
+
+  /* Wallpaper. Set --eg-wallpaper to url('https://.../img.png') to use a photo.
+     Leave as the gradient for pure flat espresso. */
+  --eg-wallpaper:       linear-gradient(160deg,#14110e 0%,#1a150f 55%,#100d0a 100%);
+  --eg-wallpaper-blur:  0px;
+  --eg-wallpaper-dim:   .0;          /* 0 = wallpaper full, .5 = darkened */
+
+  /* Accent motion. Set --eg-anim-accent to 'paused' to freeze the shimmer. */
+  --eg-anim-accent:     running;
+
+  /*======================================================================
+    ENGINE MAP — generic knobs the class rules read. Don't need to touch.
+  ======================================================================*/
+  --themeColor1: var(--eg-gold);
+  --themeColor2: var(--eg-gold-deep);
+  --themeColor01: var(--eg-gold);
+  --mainColor: var(--eg-gold);
+  --gradientColor01: #f0dcae;
+  --gradientColor02: #a8853f;
+  --customFont: var(--eg-font), sans-serif;
+  --backgroundCode: var(--eg-surface);
+  --backgroundName: var(--eg-bg);
+}
+
+/*##########################################################################
+  1) FONT  — Poppins everywhere, incl. Discord's own font tokens
+##########################################################################*/
+:root {
+  --font-primary: var(--eg-font), "gg sans", "Noto Sans", sans-serif;
+  --font-display: var(--eg-font), "gg sans", "Noto Sans", sans-serif;
+  --font-headline: var(--eg-font), "gg sans", sans-serif;
+}
+::placeholder, body, button, input, select, textarea,
+[class*="title"], [class*="header"], [class*="name"] {
+  font-family: var(--eg-font), "gg sans", sans-serif !important;
+}
+code, pre, [class*="hljs"], [class*="codeContainer"] {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace !important;
+}
+
+/*##########################################################################
+  2) THE ENGINE — repaint Discord via its design tokens
+     (legacy + visual-refresh families, both set for full coverage)
+##########################################################################*/
+.theme-dark,
+.theme-light,
+:root {
+  /* ---- legacy backgrounds ---- */
+  --background-primary:        var(--eg-bg);
+  --background-secondary:      var(--eg-bg-2);
+  --background-secondary-alt:  var(--eg-bg-3);
+  --background-tertiary:       var(--eg-bg-deep);
+  --background-accent:         var(--eg-gold-deep);
+  --background-floating:       var(--eg-bg-3);
+  --background-nested-floating:var(--eg-surface);
+  --background-mobile-primary: var(--eg-bg);
+  --background-mobile-secondary:var(--eg-bg-2);
+  --background-message-hover:  var(--eg-gold-wash);
+  --background-modifier-hover:      rgba(244,238,226,.04);
+  --background-modifier-active:     rgba(244,238,226,.08);
+  --background-modifier-selected:   var(--eg-gold-wash);
+  --background-modifier-accent:     var(--eg-line-1);
+  --channeltextarea-background:     var(--eg-surface);
+  --activity-card-background:       var(--eg-surface);
+
+  /* ---- visual-refresh backgrounds ---- */
+  --bg-base-lower:      var(--eg-bg-deep);
+  --bg-base-low:        var(--eg-bg-2);
+  --bg-base-tertiary:   var(--eg-bg-deep);
+  --bg-base-secondary:  var(--eg-bg-2);
+  --bg-base-primary:    var(--eg-bg);
+  --bg-surface-overlay: var(--eg-bg-3);
+  --bg-surface-overlay-tmp: var(--eg-bg-3);
+  --bg-surface-raised:  var(--eg-surface);
+  --bg-surface-high:    var(--eg-surface-2);
+  --bg-surface-higher:  var(--eg-surface-3);
+  --bg-surface-highest: var(--eg-surface-3);
+  --bg-mod-faint:   rgba(244,238,226,.03);
+  --bg-mod-subtle:  rgba(244,238,226,.06);
+  --bg-mod-regular: rgba(244,238,226,.09);
+  --bg-mod-strong:  rgba(244,238,226,.13);
+  --bg-mod-stronger:rgba(244,238,226,.17);
+  --bg-overlay-app-frame: var(--eg-bg-deep);
+
+  /* ---- borders ---- */
+  --border-subtle:  var(--eg-line-1);
+  --border-faint:   var(--eg-line-1);
+  --border-normal:  var(--eg-line-2);
+  --border-strong:  var(--eg-line-3);
+  --border-error:   var(--eg-red);
+
+  /* ---- text (legacy + refresh) ---- */
+  --text-normal:      var(--eg-ink-2);
+  --text-default:     var(--eg-ink-2);
+  --text-muted:       var(--eg-ink-mid);
+  --text-faint:       var(--eg-ink-faint);
+  --text-feedback:    var(--eg-ink-soft);
+  --text-link:        var(--eg-gold);
+  --text-link-low-saturation: var(--eg-gold-soft);
+  --text-brand:       var(--eg-gold-2);
+  --text-positive:    var(--eg-online);
+  --text-warning:     var(--eg-idle);
+  --text-danger:      var(--eg-dnd);
+  --header-primary:   var(--eg-ink);
+  --header-secondary: var(--eg-ink-soft);
+  --channels-default:      var(--eg-ink-mid);
+  --channel-icon:          var(--eg-ink-faint);
+  --channel-text-area-placeholder: var(--eg-ink-faint);
+  --interactive-normal:    var(--eg-ink-soft);
+  --interactive-hover:     var(--eg-ink);
+  --interactive-active:    var(--eg-gold-ink);
+  --interactive-muted:     var(--eg-ink-ghost);
+
+  /* ---- brand ramp → gold ---- */
+  --brand-experiment:      var(--eg-gold);
+  --brand-experiment-100:  #f4ecd9;
+  --brand-experiment-200:  #ecdcb8;
+  --brand-experiment-300:  #e3c789;
+  --brand-experiment-360:  #d8bd83;
+  --brand-experiment-400:  #d0b476;
+  --brand-experiment-460:  var(--eg-gold);
+  --brand-experiment-500:  var(--eg-gold);
+  --brand-experiment-560:  var(--eg-gold-deep);
+  --brand-experiment-600:  var(--eg-gold-deep);
+  --brand-experiment-630:  #9a7838;
+  --brand-experiment-700:  #8a6c33;
+  --brand-experiment-800:  #6f5628;
+  --brand-500:  var(--eg-gold);
+  --brand-560:  var(--eg-gold-deep);
+  --brand-600:  var(--eg-gold-deep);
+  --brand-260:  var(--eg-gold-wash);
+  --brand-360:  var(--eg-gold-soft);
+  --brand-430:  var(--eg-gold);
+
+  /* ---- buttons ---- */
+  --button-filled-brand-background:        var(--eg-gold);
+  --button-filled-brand-background-hover:  var(--eg-gold-2);
+  --button-filled-brand-background-active: var(--eg-gold-deep);
+  --button-filled-brand-text:              var(--eg-gold-ink);
+  --button-outline-brand-text:             var(--eg-gold-2);
+  --button-outline-brand-border:           var(--eg-gold-line);
+  --button-secondary-background:           var(--eg-surface-2);
+  --button-secondary-background-hover:     var(--eg-surface-3);
+
+  /* ---- mentions ---- */
+  --mention-background:            var(--eg-gold-wash);
+  --mention-foreground:            var(--eg-gold-2);
+  --mention-background-hover:      rgba(200,169,106,.16);
+  --input-background:              var(--eg-surface);
+
+  /* ---- controls / misc ---- */
+  --control-brand-foreground:      var(--eg-gold);
+  --focus-primary:                 var(--eg-gold);
+  --status-online:  var(--eg-online);
+  --status-idle:    var(--eg-idle);
+  --status-dnd:     var(--eg-dnd);
+
+  /* ---- scrollbars ---- */
+  --scrollbar-thin-thumb:  var(--eg-gold-deep);
+  --scrollbar-thin-track:  transparent;
+  --scrollbar-auto-thumb:  var(--eg-gold-deep);
+  --scrollbar-auto-track:  var(--eg-bg-deep);
+  --scrollbar-auto-scrollbar-color-thumb: var(--eg-gold-deep);
+  --scrollbar-auto-scrollbar-color-track: var(--eg-bg-deep);
+
+  /* ---- elevation shadows ---- */
+  --elevation-low:      0 1px 0 0 var(--eg-line-1);
+  --elevation-medium:   0 4px 14px 0 rgba(0,0,0,.45);
+  --elevation-high:     0 8px 28px 0 rgba(0,0,0,.6);
+  --shadow-high:        0 8px 28px 0 rgba(0,0,0,.6);
+}
+
+/*##########################################################################
+  3) WALLPAPER + GLOBAL SURFACES
+##########################################################################*/
+body, #app-mount, .appMount__51fd7,
+[class*="appAsideContainer"], [class*="app_"], [class*="appMount"] {
+  background: var(--eg-bg) !important;
+}
+
+/* full-window wallpaper layer */
+#app-mount::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--eg-wallpaper) center / cover no-repeat fixed;
+  filter: blur(var(--eg-wallpaper-blur));
+  pointer-events: none;
+}
+#app-mount::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(16,13,10, var(--eg-wallpaper-dim));
+  pointer-events: none;
+}
+
+/* let chrome float over the wallpaper */
+[class*="base_"], [class*="content_"], [class*="chat_"], [class*="chatContent"],
+[class*="container_"][class*="themed"], [class*="sidebar_"], [class*="members"] {
+  background-color: transparent !important;
+}
+
+/*##########################################################################
+  4) SCROLLBARS — thin gold
+##########################################################################*/
+::-webkit-scrollbar { width: 8px !important; height: 8px !important; }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent !important; border: none !important; }
+::-webkit-scrollbar-thumb {
+  background: var(--eg-gold-deep) !important;
+  border-radius: 50px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--eg-gold) !important; background-clip: padding-box !important; }
+
+/*##########################################################################
+  5) SERVER RAIL — rounded icons, animated gold pill
+##########################################################################*/
+[class*="guilds_"], [class*="tree_"][aria-label] {
+  background: transparent !important;
+}
+/* squircle/round icons */
+[class*="wrapper_"] [class*="childWrapper"],
+[class*="pill_"] + div [class*="wrapper"] foreignObject,
+[class*="acronym"], [class*="avatar"] foreignObject,
+[class*="blobContainer"] [class*="link"] {
+  border-radius: var(--eg-avatar-radius) !important;
+  transition: border-radius var(--eg-speed) ease !important;
+}
+[class*="blobContainer"]:hover [class*="link"] { border-radius: 30% !important; }
+
+/* selected/hover gold pill */
+[class*="pill_"] [class*="item_"] {
+  background: var(--eg-gold) !important;
+  background-image: var(--eg-grad-gold) !important;
+}
+[class*="listItem"] [class*="wrapper"]:hover ~ * [class*="pill"] [class*="item"] { background: var(--eg-gold-2) !important; }
+
+/* home button */
+.tutorialContainer__1f388 .childWrapper__6e9f8,
+[class*="homeIcon"] {
+  background: var(--eg-grad-gold) !important;
+  color: var(--eg-gold-ink) !important;
+}
+
+/*##########################################################################
+  6) CHANNEL LIST — gold active bar + hover slide
+##########################################################################*/
+[class*="containerDefault"] [class*="link_"],
+[class*="channelRow"], [class*="link__"] {
+  transition: background var(--eg-speed) ease, padding var(--eg-speed) ease, color var(--eg-speed) ease;
+  border-radius: var(--eg-radius-sm);
+}
+[class*="containerDefault"] [class*="link_"]:hover { padding-left: 12px; }
+
+[class*="modeSelected"] [class*="link_"],
+[class*="containerDefault"][class*="selected"] [class*="link_"] {
+  background: var(--eg-gold-wash) !important;
+  position: relative;
+}
+[class*="modeSelected"] [class*="link_"]::before,
+[class*="containerDefault"][class*="selected"] [class*="link_"]::before {
+  content: "";
+  position: absolute; left: 0; top: 12%;
+  height: 76%; width: 3px;
+  border-radius: 4px;
+  background: var(--eg-grad-gold);
+  box-shadow: 0 0 8px var(--eg-gold-glow);
+}
+[class*="modeUnread"] [class*="name_"] { color: var(--eg-ink-2) !important; }
+
+/* category headers — gold, subtle */
+[class*="containerDefault"] h2 [class*="name_"],
+[class*="mainContent"] [class*="container"] { color: var(--eg-gold) !important; }
+
+/*##########################################################################
+  7) CHAT — hover, mentions glow, replies, links, spoilers, embeds
+##########################################################################*/
+/* message hover: faint gold wash + accent edge */
+[class*="message_"]:hover {
+  background: linear-gradient(90deg, var(--eg-gold-wash), transparent 60%) !important;
+}
+[class*="message_"]:hover::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--eg-grad-gold); opacity: .8;
+}
+
+/* mentions: glowing gold */
+[class*="mention"]:not([class*="wrapper"]) {
+  background: var(--eg-gold-wash) !important;
+  color: var(--eg-gold-2) !important;
+  border-radius: 5px;
+  transition: background var(--eg-speed) ease, box-shadow var(--eg-speed) ease;
+}
+[class*="mention"]:not([class*="wrapper"]):hover {
+  background: rgba(200,169,106,.18) !important;
+  box-shadow: 0 0 0 1px var(--eg-gold-line), 0 0 10px var(--eg-gold-glow);
+}
+[class*="mentioned_"] {
+  background: linear-gradient(90deg, var(--eg-gold-wash), transparent 70%) !important;
+}
+[class*="mentioned_"]::after {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--eg-grad-gold); box-shadow: 0 0 8px var(--eg-gold-glow);
+}
+
+/* links + reply pill */
+[class*="anchor"], a[class*="link"] { color: var(--eg-gold) !important; text-decoration-color: var(--eg-gold-line) !important; }
+[class*="anchor"]:hover { color: var(--eg-gold-2) !important; }
+[class*="repliedMessage"]::before { border-color: var(--eg-gold-line) !important; }
+
+/* spoilers */
+[class*="spoilerContent"], [class*="spoilerText"] {
+  background: var(--eg-surface-2) !important;
+  border-radius: var(--eg-radius-sm);
+}
+[class*="spoilerText"][class*="hidden"]::before { background: var(--eg-surface-3) !important; }
+
+/* embeds + attachments as raised cards */
+[class*="embedFull"], [class*="embedWrapper"], [class*="gridContainer"],
+[class*="wrapperAudio"], [class*="fileContainer"], [class*="embed_"] {
+  background: color-mix(in srgb, var(--eg-surface) 88%, transparent) !important;
+  border-left: 3px solid var(--eg-gold-line) !important;
+  border-radius: var(--eg-radius) !important;
+  overflow: hidden;
+}
+
+/* reactions */
+[class*="reaction_"] { background: var(--eg-surface-2) !important; border-radius: 8px; transition: background var(--eg-speed) ease; }
+[class*="reaction_"]:hover { background: var(--eg-surface-3) !important; }
+[class*="reactionMe"] {
+  background: var(--eg-gold-wash) !important;
+  box-shadow: inset 0 0 0 1px var(--eg-gold-line);
+}
+[class*="reactionMe"] [class*="reactionCount"] { color: var(--eg-gold-2) !important; }
+
+/* message input bar */
+[class*="channelTextArea"], [class*="scrollableContainer__74017"] {
+  background: color-mix(in srgb, var(--eg-surface) 90%, transparent) !important;
+  border: 1px solid var(--eg-line-1) !important;
+  border-radius: var(--eg-radius) !important;
+  transition: border-color var(--eg-speed) ease, box-shadow var(--eg-speed) ease;
+}
+[class*="channelTextArea"]:focus-within {
+  border-color: var(--eg-gold-line) !important;
+  box-shadow: 0 0 0 1px var(--eg-gold-line), 0 0 16px -4px var(--eg-gold-glow) !important;
+}
+
+/*##########################################################################
+  8) POPOUTS / MODALS / CONTEXT MENU — glassmorphism + gold edge
+##########################################################################*/
+[class*="menu_"][role="menu"],
+[class*="contextMenu"],
+[class*="layer_"] [class*="root_"],
+[class*="quickswitcher"],
+[class*="autocomplete"] {
+  background: color-mix(in srgb, var(--eg-bg-3) 78%, transparent) !important;
+  backdrop-filter: blur(var(--eg-glass-blur)) saturate(140%) !important;
+  border: 1px solid var(--eg-line-2) !important;
+  border-radius: var(--eg-radius) !important;
+  box-shadow: var(--elevation-high), inset 0 0 0 1px rgba(244,238,226,.02) !important;
+}
+[class*="contextMenu"] [class*="focused"],
+[class*="menu_"] [class*="focused"] {
+  background: var(--eg-gold-wash) !important;
+  color: var(--eg-ink) !important;
+  border-radius: var(--eg-radius-sm);
+}
+[class*="colorDanger"][class*="focused"] { background: rgba(201,111,90,.18) !important; }
+
+/* modals */
+[class*="modal_"] [class*="root_"], [class*="modalRoot"] {
+  border-radius: var(--eg-radius) !important;
+  border: 1px solid var(--eg-line-2) !important;
+}
+
+/*##########################################################################
+  9) TOOLTIPS — gold border
+##########################################################################*/
+[class*="tooltip_"]:not([class*="tooltipPointer"]) {
+  background: var(--eg-bg-3) !important;
+  border: 1px solid var(--eg-gold-line) !important;
+  border-radius: var(--eg-radius-sm) !important;
+  color: var(--eg-ink) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5) !important;
+}
+[class*="tooltipBrand"] { background: var(--eg-grad-gold) !important; color: var(--eg-gold-ink) !important; }
+
+/*##########################################################################
+  10) BUTTONS — signature gold fill w/ animated sheen on hover
+##########################################################################*/
+[class*="lookFilled"][class*="colorBrand"],
+[class*="lookFilled"][class*="colorGreen"],
+[class*="button"][class*="colorBrand"],
+[class*="pfbtn"], .bd-button {
+  position: relative;
+  overflow: hidden;
+  background: var(--eg-grad-gold) !important;
+  color: var(--eg-gold-ink) !important;
+  border: none !important;
+  border-radius: var(--eg-radius) !important;
+  transition: box-shadow var(--eg-speed) ease, transform var(--eg-speed) ease, border-radius var(--eg-speed) ease;
+}
+[class*="lookFilled"][class*="colorBrand"]:hover,
+[class*="lookFilled"][class*="colorGreen"]:hover,
+[class*="button"][class*="colorBrand"]:hover,
+.bd-button:hover {
+  box-shadow: 0 4px 18px -4px var(--eg-gold-glow) !important;
+  border-radius: var(--eg-radius-sm) !important;
+  transform: translateY(-1px);
+}
+[class*="lookFilled"][class*="colorBrand"]::after,
+[class*="button"][class*="colorBrand"]::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--eg-grad-sheen);
+  background-size: 250% 100%;
+  background-position: 150% 0;
+  transition: background-position .5s ease;
+  pointer-events: none;
+}
+[class*="lookFilled"][class*="colorBrand"]:hover::after,
+[class*="button"][class*="colorBrand"]:hover::after { background-position: -50% 0; }
+
+/* danger stays red */
+[class*="colorRed"], [class*="colorDanger"][class*="lookFilled"] {
+  background: linear-gradient(102deg,#d98d78,#c96f5a 60%,#a8503c) !important;
+  color: #fff !important;
+}
+
+/* gradient text util (Nitro-ish labels) */
+[class*="lookInverted"] [class*="contents"] {
+  background: var(--eg-grad-text);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/*##########################################################################
+  11) INPUTS / SWITCHES / CHECKBOXES / RADIOS / SLIDERS — gold
+##########################################################################*/
+[class*="input_"], [class*="inputDefault"], [class*="searchBar"] {
+  background: var(--eg-surface) !important;
+  border: 1px solid var(--eg-line-1) !important;
+  border-radius: var(--eg-radius-sm) !important;
+  transition: border-color var(--eg-speed) ease, box-shadow var(--eg-speed) ease;
+}
+[class*="input_"]:focus, [class*="inputDefault"]:focus-within {
+  border-color: var(--eg-gold-line) !important;
+  box-shadow: 0 0 0 1px var(--eg-gold-line) !important;
+}
+/* toggle on */
+[class*="checked_"][class*="container"], [class*="bd-switch"] input:checked + .bd-switch-body {
+  background: var(--eg-grad-gold) !important;
+}
+/* checkbox checked */
+[class*="checkbox"][class*="checked"] {
+  background: var(--eg-gold) !important;
+  border-color: var(--eg-gold-deep) !important;
+}
+/* slider fill + grabber */
+[class*="barFill"], [class*="sliderTrack"] { background: var(--eg-grad-gold) !important; }
+[class*="grabber"] { border-color: var(--eg-gold) !important; }
+
+/*##########################################################################
+  12) MEMBERS LIST + USER PANEL
+##########################################################################*/
+[class*="membersGroup"] {
+  color: var(--eg-ink-soft) !important;
+  border-bottom: 1px solid var(--eg-gold-line);
+  letter-spacing: .5px;
+}
+[class*="member_"][class*="clickable"]:hover,
+[class*="memberInner"]:hover {
+  background: var(--eg-gold-wash) !important;
+  border-radius: var(--eg-radius-sm);
+}
+[class*="avatarSpeaking"] { box-shadow: 0 0 0 2px var(--eg-gold), 0 0 10px var(--eg-gold-glow) !important; }
+
+[class*="panels_"], [class*="panel_"][class*="container"] {
+  background: color-mix(in srgb, var(--eg-bg-2) 80%, transparent) !important;
+}
+
+/*##########################################################################
+  13) SETTINGS — sidebar active + headers
+##########################################################################*/
+[class*="side_"] [class*="item_"] {
+  border-radius: var(--eg-radius-sm);
+  transition: background var(--eg-speed) ease, padding var(--eg-speed) ease;
+}
+[class*="side_"] [class*="item_"]:hover { background: var(--eg-gold-wash) !important; }
+[class*="side_"] [class*="item_"][class*="selected"] {
+  background: var(--eg-gold-wash) !important;
+  position: relative;
+}
+[class*="side_"] [class*="item_"][class*="selected"]::before {
+  content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 3px;
+  border-radius: 4px; background: var(--eg-grad-gold);
+}
+[class*="side_"] [class*="header_"] {
+  color: var(--eg-gold) !important;
+  letter-spacing: 1px; text-transform: uppercase; font-size: 11px;
+}
+/* cards in settings */
+[class*="card_"], [class*="cardPrimary"], [class*="row_"][class*="hasCategories"] {
+  background: color-mix(in srgb, var(--eg-surface) 85%, transparent) !important;
+  border: 1px solid var(--eg-line-1) !important;
+  border-radius: var(--eg-radius) !important;
+}
+
+/*##########################################################################
+  14) EMOJI / STICKER / GIF PICKER
+##########################################################################*/
+[class*="contentWrapper__08434"], [class*="wrapper__14245"], [class*="positionContainer"] {
+  border: 1px solid var(--eg-line-2) !important;
+  border-radius: var(--eg-radius) !important;
+}
+[class*="categoryItem"][class*="Selected"],
+[class*="emojiItemSelected"], [class*="navButtonActive"] {
+  background: var(--eg-grad-gold) !important;
+}
+[class*="stickerCategory"][class*="Selected"] { background: var(--eg-gold) !important; }
+
+/*##########################################################################
+  15) VENCORD / BETTERDISCORD panels
+##########################################################################*/
+.vc-addon-card, .vc-card-normal, .bd-addon-card {
+  background: color-mix(in srgb, var(--eg-surface) 85%, transparent) !important;
+  border: 1px solid var(--eg-line-1) !important;
+  border-radius: var(--eg-radius) !important;
+}
+.vc-addon-card:hover, .bd-addon-card:hover { border-color: var(--eg-gold-line) !important; }
+.vc-switch-checked { background: var(--eg-gold) !important; }
+#vc-spotify-player { background: color-mix(in srgb, var(--eg-surface) 85%, transparent) !important; border-radius: var(--eg-radius) !important; }
+
+/*##########################################################################
+  16) STATUS DOTS — warmed
+##########################################################################*/
+[class*="online"] rect, rect[fill*="43b581"], rect[fill*="23a55a"] { fill: var(--eg-online) !important; }
+[class*="idle"] rect,   rect[fill*="faa61a"], rect[fill*="f0b232"] { fill: var(--eg-idle) !important; }
+[class*="dnd"] rect,    rect[fill*="f04747"], rect[fill*="f23f43"] { fill: var(--eg-dnd) !important; }
+
+/*##########################################################################
+  17) LOGIN / LOADING SCREEN
+##########################################################################*/
+[class*="authBox"], [class*="wrapper_"][class*="loading"] {
+  background: color-mix(in srgb, var(--eg-bg-2) 88%, transparent) !important;
+  border: 1px solid var(--eg-line-2) !important;
+  border-radius: var(--eg-radius) !important;
+}
+
+/*##########################################################################
+  18) CODE BLOCKS  (compact hljs w/ language tag + line numbers)
+##########################################################################*/
+.markup__75297 pre { position: relative; border-radius: var(--eg-radius-sm); }
+.hljs, [class*="hljs"] {
+  background: var(--eg-surface) !important;
+  padding-left: 30px !important;
+  overflow: hidden;
+  border-radius: var(--eg-radius-sm);
+}
+.hljs::before {
+  content: "code";
+  padding: 1px 8px 1px 10px;
+  position: absolute; top: 0; left: 0; z-index: 2;
+  color: var(--eg-gold-ink);
+  background: var(--eg-grad-gold);
+  width: 100%; height: 20px; line-height: 20px;
+  box-sizing: border-box; font-weight: 600; font-size: 11px; letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.hljs { padding-top: 24px !important; }
+.hljs.css::before{content:"CSS"} .hljs.js::before,.hljs.javascript::before{content:"JavaScript"}
+.hljs.ts::before,.hljs.typescript::before{content:"TypeScript"} .hljs.py::before,.hljs.python::before{content:"Python"}
+.hljs.json::before{content:"JSON"} .hljs.html::before{content:"HTML"} .hljs.bash::before,.hljs.sh::before{content:"Bash"}
+.hljs.rs::before,.hljs.rust::before{content:"Rust"} .hljs.go::before{content:"Go"} .hljs.java::before{content:"Java"}
+.hljs.cpp::before{content:"C++"} .hljs.c::before{content:"C"} .hljs.cs::before,.hljs.csharp::before{content:"C#"}
+.hljs.sql::before{content:"SQL"} .hljs.yaml::before{content:"YAML"} .hljs.md::before,.hljs.markdown::before{content:"Markdown"}
+.hljs.php::before{content:"PHP"} .hljs.rb::before,.hljs.ruby::before{content:"Ruby"} .hljs.lua::before{content:"Lua"}
+.hljs.kotlin::before{content:"Kotlin"} .hljs.swift::before{content:"Swift"} .hljs.diff::before{content:"Diff"}
+.hljs.powershell::before,.hljs.ps::before{content:"PowerShell"} .hljs.xml::before{content:"XML"} .hljs.toml::before{content:"TOML"}
+
+/*##########################################################################
+  19) BADGES — engine only. Add your own below.
+     Template (swap ID, image, hover text/colors):
+       .avatar_c19a55[src*="YOUR_USER_ID"] ~ h3 [class*="username"]::after {
+         content:""; background-image:url('...');
+       }
+       .avatar_c19a55[src*="YOUR_USER_ID"] ~ h3 [class*="username"]:hover::after {
+         content:"YOUR TEXT"; color:var(--eg-gold-ink); background:var(--eg-grad-gold);
+       }
+##########################################################################*/
+[class*="username"]:not([class*="Gradient"])::after {
+  display: inline-block; height: 14px; width: 14px; line-height: 14px;
+  background: center / contain no-repeat; position: relative; top: 2px; margin-left: 5px;
+}
+[class*="username"]:not([class*="Gradient"]):hover::after {
+  width: auto; border-radius: 4px; padding: 2px 6px;
+  background-image: none !important; background-color: var(--eg-bg);
+  color: var(--eg-ink); font-size: 12px; top: -1px; font-weight: 500;
+  transition: color var(--eg-speed) ease, background-color var(--eg-speed) ease;
+}
+
+/*##########################################################################
+  20) ANIMATIONS
+##########################################################################*/
+@keyframes eg-pulse {
+  0%,100% { box-shadow: 0 0 0 0 var(--eg-gold-glow); }
+  50%     { box-shadow: 0 0 12px 2px var(--eg-gold-glow); }
+}
+@keyframes eg-sheen { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@keyframes eg-fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none; } }
+@keyframes eg-scaleIn { from { transform: scale(.85); opacity:0; } to { transform: scale(1); opacity:1; } }
+
+/* live/voice badges pulse */
+[class*="liveBadge"], [class*="participating"] {
+  background: var(--eg-grad-gold) !important;
+  animation: eg-pulse 1.6s ease-in-out infinite var(--eg-anim-accent);
+}
+/* popouts fade in */
+[class*="contextMenu"], [class*="menu_"][role="menu"] { animation: eg-fadeIn .14s ease both; }
+
+/*##########################################################################
+  21) ACCESSIBILITY — honor reduced motion
+##########################################################################*/
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
